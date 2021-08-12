@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<mapper namespace="product">
+	<select id="selectProductInform" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+		select * from product where prod_num = #{PROD_NUM}
+	]]>
+	</select>
+	
+	<select id="selectProductDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+  				PROD_NUM, 
+    			PROD_NAME, 
+    			PROD_CATEGORY, 
+    			PROD_PRICE, 
+    			PROD_STOCK,
+    			PROD_RPRICE, 
+    			PROD_RSTOCK, 
+    			PROD_CONTEXT, 
+    			PROD_HITCOUNT, 
+    			TO_CHAR(PROD_DATE, 'YYYY.MM.DD') AS PROD_DATE, 
+    			PROD_DEL,
+    			PROD_THUMB,
+    			PROD_SUB	
+			FROM 
+  				PRODUCT
+			WHERE
+ 				PROD_NUM = #{PROD_NUM}
+		]]>
+	</select>
+	
+	<select id="selectProductReview" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+		select * from review where prod_num = #{PROD_NUM}
+	]]>
+	</select>
+	
+	<select id="selectProductQuestion" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+		select pq.pq_num, pq.member_id, pq.pq_title, pq.pq_content, pq.pq_date, 
+(select p.member_id from productquestion p where p.pq_pnum = pq.pq_num) re_id,
+(select p.pq_title from productquestion p where p.pq_pnum = pq.pq_num) re_title,
+(select p.pq_content from productquestion p where p.pq_pnum = pq.pq_num) re_content,
+(select p.pq_date from productquestion p where p.pq_pnum = pq.pq_num) re_date
+from productquestion pq where pq.prod_num = #{PROD_NUM} and pq.pq_pnum is null and pq.pq_del=0
+	]]>
+	</select>
+	
+	<insert id="insertCart" parameterType="hashmap">
+	<![CDATA[
+		INSERT INTO cart VALUES(SEQ_cart_NUM.NEXTVAL,#{MEMBER_ID},#{PROD_NUM},#{PROD_COUNT}, #{CART_RENTAL}, default)
+	]]>
+	</insert>
+	
+	<select id="selectCart" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+		select * from cart where prod_num = #{PROD_NUM} and member_id = #{MEMBER_ID} and cart_rental = #{CART_RENTAL}
+	]]>
+	</select>
+	
+	<update id="updateCart" parameterType="hashmap">
+	<![CDATA[
+		update cart set prod_count = #{PROD_COUNT} where prod_num = #{PROD_NUM} and member_id = #{MEMBER_ID} and cart_rental = #{CART_RENTAL}
+	]]>
+	</update>
+	
+	<select id="selectDayStock" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+		select count(DISTINCT prod_serial_num) as day_stock
+                                    from rental
+                                    where prod_num = #{PROD_NUM} and rental_day between #{FIRST_DAY} and #{LAST_DAY}
+                                    group by prod_num
+	]]>
+	</select>
+	
+	<!-- 조회수 증가 -->
+	<update id="updateHitCount" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PRODUCT
+			SET
+				PROD_HITCOUNT = NVL(PROD_HITCOUNT, 0) + 1
+			WHERE
+				PROD_NUM = #{PROD_NUM}	
+		]]>
+	</update>
+	
+</mapper>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="adminProduct">
+	<select id="selectProductList" parameterType="hashmap" resultType="hashmap">
+		<include refid="common.pagingPre"/>
+		<![CDATA[
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY PROD_NUM DESC) AS RNUM,
+    			PROD_NUM, 
+    			PROD_NAME, 
+    			PROD_CATEGORY, 
+    			PROD_PRICE, 
+    			PROD_STOCK,
+    			PROD_RPRICE, 
+    			PROD_RSTOCK, 
+    			PROD_CONTEXT,
+    			PROD_HITCOUNT, 
+    			TO_CHAR(PROD_DATE, 'YYYY.MM.DD') AS PROD_DATE, 
+    			PROD_DEL,
+    			PROD_THUMB,
+    			PROD_SUB
+			FROM
+    			PRODUCT
+		]]>
+		<include refid="common.pagingPost"/>
+	</select>
+	 
+	<select id="selectProductSearchList" parameterType="hashmap" resultType="hashmap">
+		<include refid="common.pagingPre"/>
+		<![CDATA[
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY PROD_NUM DESC) AS RNUM,
+    			PROD_NUM, 
+    			PROD_NAME, 
+    			PROD_CATEGORY, 
+    			PROD_PRICE, 
+    			PROD_STOCK,
+    			PROD_RPRICE, 
+    			PROD_RSTOCK, 
+    			PROD_CONTEXT, 
+    			PROD_HITCOUNT, 
+    			TO_CHAR(PROD_DATE, 'YYYY.MM.DD') AS PROD_DATE, 
+    			PROD_DEL,
+    			PROD_THUMB,
+    			PROD_SUB
+			FROM
+    			PRODUCT
+    		WHERE
+		]]>
+			<if test="searchType == 'TENT'"> 
+				PROD_CATEGORY = '텐트/타프' AND PROD_NAME LIKE '%' || #{keyword} || '%' 
+			</if> 
+			<if test="searchType == 'MAT'"> 
+				PROD_CATEGORY = '매트/침낭' AND PROD_NAME LIKE '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'CHAIR'"> 
+				PROD_CATEGORY = '테이블/체어' AND PROD_NAME LIKE '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'ETC'"> 
+				PROD_CATEGORY = '기타' AND PROD_NAME LIKE '%' || #{keyword} || '%'
+			</if>
+		<include refid="common.pagingPost"/>
+	</select>
+	
+	
+	
+	<!-- 조회수 증가 -->
+	<update id="updateHitCount" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PRODUCT
+			SET
+				PROD_HITCOUNT = NVL(PROD_HITCOUNT, 0) + 1
+			WHERE
+				PROD_NUM = #{PROD_NUM}	
+		]]>
+	</update>
+	
+	<select id="selectProductModify" parameterType="hashMap" resultType="hashMap">
+		<![CDATA[
+			select * from product where prod_num = #{num}
+		]]>
+	</select>
+	
+	<insert id="insertProduct" parameterType="hashmap">
+	<![CDATA[
+		INSERT INTO PRODUCT
+		VALUES(
+		SEQ_PROD_NUM.NEXTVAL,
+		#{PROD_NAME, jdbcType=VARCHAR},
+		#{PROD_CATEGORY, jdbcType=VARCHAR},
+		#{PROD_PRICE, jdbcType=VARCHAR},
+		#{PROD_STOCK, jdbcType=VARCHAR},
+		#{PROD_RPRICE, jdbcType=VARCHAR},
+		#{PROD_RSTOCK, jdbcType=VARCHAR}, 
+		#{PROD_CONTEXT, jdbcType=VARCHAR},
+		default,
+		default,
+		default, 
+		#{PROD_THUMB, jdbcType=VARCHAR},
+		#{PROD_SUB, jdbcType=VARCHAR}
+		)
+	]]>
+	</insert>
+	
+	<update id="updateProduct" parameterType="hashmap">
+	<![CDATA[
+		UPDATE PRODUCT 
+		set prod_name = #{PROD_NAME}, prod_category = #{PROD_CATEGORY},
+		prod_price = #{PROD_PRICE}, prod_stock = #{PROD_STOCK}, 
+		prod_rprice = #{PROD_RPRICE}, prod_rstock = #{PROD_RSTOCK}, 
+		prod_date = SYSDATE, PROD_THUMB = #{PROD_THUMB}, PROD_SUB = #{PROD_SUB} 
+		where prod_num = #{PROD_NUM}
+	]]>
+	</update>
+</mapper>
